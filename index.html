@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEC 2: Visualización de Datos - Pablo Alejandro Calviño Padín (UOC)</title>
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #0284c7;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0369a1 100%);
+      color: white;
+      padding: 48px 32px 36px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #38bdf8;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    p.author {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    p.meta {
+      margin: 6px 0 0;
+      font-size: 13px;
+      opacity: 0.75;
+    }
+    .container {
+      max-width: 1200px;
+      margin: -24px auto 60px;
+      padding: 0 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .group-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .tag-g1 { background: #e0f2fe; color: #0284c7; }
+    .tag-g2 { background: #dcfce7; color: #16a34a; }
+    .tag-g3 { background: #ffedd5; color: #ea580c; }
+    .card-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .card-body {
+      padding: 20px 24px;
+      flex: 1;
+      font-size: 14px;
+      color: #334155;
+    }
+    .card-body p {
+      margin: 0 0 12px;
+    }
+    .dataset-info {
+      background: #f1f5f9;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-top: 14px;
+      border-left: 3px solid var(--accent);
+    }
+    .card-footer {
+      padding: 16px 24px 20px;
+      border-top: 1px solid var(--border);
+      background: #fafafa;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .btn:hover {
+      background: #0369a1;
+    }
+    footer {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">UOC · Máster Universitario en Ingeniería Informática</div>
+  <h1>M2.859 - Visualización de Datos (PEC 2)</h1>
+  <p class="author"><strong>Estudiante:</strong> Pablo Alejandro Calviño Padín &nbsp;|&nbsp; <strong>Profesor Colaborador:</strong> Ignasi Alcalde</p>
+  <p class="meta">Asignación Oficial: Choropleth Map (Grupo I) · Slope Chart (Grupo II) · Ridgeline Chart (Grupo III)</p>
+</header>
+
+<div class="container">
+  <div class="grid">
+
+    <!-- Tarjeta 1: Choropleth Map -->
+    <div class="card">
+      <div class="card-header">
+        <span class="group-tag tag-g1">Grupo I: Básicas y Populares</span>
+        <h2 class="card-title">1. Choropleth Map</h2>
+      </div>
+      <div class="card-body">
+        <p><strong>Tema:</strong> Tasa de riesgo de pobreza o exclusión social (Tasa AROPE) por CC.AA. en España.</p>
+        <p><strong>Técnica:</strong> Mapa temático de coropletas basado en la cartografía de Charles Dupin (1826) y John K. Wright (1938), utilizando una paleta secuencial ColorBrewer <em>YlOrRd</em> de 5 clases para evitar distorsiones perceptuales.</p>
+        <p><strong>Insight clave:</strong> Evidencia con impacto visual la profunda brecha territorial norte-sur (15,5% en País Vasco frente a 37,5% en Andalucía y 36,9% en Extremadura).</p>
+        <div class="dataset-info">
+          <strong>Fuente abierta:</strong> INE - Encuesta de Condiciones de Vida (ECV 2023). Capa GeoJSON vectorial interactiva con Leaflet.js.
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="btn" href="01_choropleth_map_espana.html" target="_blank">Explorar Mapa Interactivo &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Tarjeta 2: Slope Chart -->
+    <div class="card">
+      <div class="card-header">
+        <span class="group-tag tag-g2">Grupo II: Habituales y Específicas</span>
+        <h2 class="card-title">2. Slope Chart</h2>
+      </div>
+      <div class="card-body">
+        <p><strong>Tema:</strong> Evolución del gasto en I+D como % del PIB (2013 vs 2023) en la Unión Europea y economías de la OCDE.</p>
+        <p><strong>Técnica:</strong> Gráfico de pendientes estilizado según el canon de Edward Tufte (1983), maximizando el <em>Data-Ink ratio</em> para comparar simultáneamente valor inicial, valor final, tasa de cambio y variación de ranking.</p>
+        <p><strong>Insight clave:</strong> Muestra la divergencia de pendientes entre los líderes que aceleran (Corea del Sur > 5%, EE.UU. > 3,4%) y el estancamiento de España (1,44%), rezagada respecto a la media de la UE-27 (2,24%).</p>
+        <div class="dataset-info">
+          <strong>Fuente abierta:</strong> Eurostat (GERD as % of GDP) y OCDE MSTI (2024). Implementación vectorial responsiva con D3.js v7.
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="btn" href="02_slope_chart_id_ue.html" target="_blank" style="background: #16a34a;">Explorar Gráfico de Pendientes &rarr;</a>
+      </div>
+    </div>
+
+    <!-- Tarjeta 3: Ridgeline Chart -->
+    <div class="card">
+      <div class="card-header">
+        <span class="group-tag tag-g3">Grupo III: Menos Habituales / Específicas</span>
+        <h2 class="card-title">3. Ridgeline Chart</h2>
+      </div>
+      <div class="card-body">
+        <p><strong>Tema:</strong> Distribución de densidad de temperaturas máximas diarias a lo largo de los 12 meses en España.</p>
+        <p><strong>Técnica:</strong> Gráfico de crestas (Joyplot) originado en la astrofísica del púlsar CP 1919 (Craft, 1970; Saville, 1979) y formalizado por Claus O. Wilke (2017) con estimaciones de densidad Kernel Gaussiana (KDE) escalonadas.</p>
+        <p><strong>Insight clave:</strong> Revela la asimetría y el ensanchamiento estacional, evidenciando las colas extremas de olas de calor en julio y agosto (con registros sobre 42 °C) que un gráfico de medias ocultaría.</p>
+        <div class="dataset-info">
+          <strong>Fuente abierta:</strong> AEMET OpenData (Series climatológicas 2020-2024). Implementación interactiva con D3.js v7 y gradiente térmico.
+        </div>
+      </div>
+      <div class="card-footer">
+        <a class="btn" href="03_ridgeline_chart_temperaturas.html" target="_blank" style="background: #ea580c;">Explorar Gráfico de Crestas &rarr;</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <p>Universitat Oberta de Catalunya (UOC) · Máster Universitario en Ingeniería Informática · PEC 2 (2026-1)</p>
+  <p>Trabajo individual desarrollado por <strong>Pablo Alejandro Calviño Padín</strong> bajo la supervisión de <strong>Ignasi Alcalde</strong>.</p>
+</footer>
+
+</body>
+</html>

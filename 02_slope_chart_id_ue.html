@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Técnica 2: Slope Chart - Gasto en I+D como % del PIB (Eurostat / OCDE)</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f8fafc; color: #1e293b; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; }
+    header { margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; }
+    h1 { font-size: 24px; color: #0f172a; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #64748b; line-height: 1.5; }
+    .badge { display: inline-block; background: #003366; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }
+    .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    #chart { background: #ffffff; border-radius: 8px; border: 1px solid #cbd5e1; padding: 16px; width: 100%; overflow-x: auto; }
+    svg { display: block; margin: 0 auto; }
+    .info-panel { background: #f8fafc; border-radius: 8px; padding: 18px; border: 1px solid #e2e8f0; font-size: 13px; line-height: 1.6; }
+    .info-panel h3 { font-size: 16px; color: #0f172a; margin-bottom: 12px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; }
+    .stat-box { background: #ffffff; border-left: 4px solid #003366; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .stat-title { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; }
+    .stat-val { font-size: 18px; font-weight: 800; color: #0f172a; }
+    .line-target { stroke-dasharray: 5, 5; stroke: #94a3b8; stroke-width: 1.5; }
+    .slope-line { transition: opacity 0.2s, stroke-width 0.2s; cursor: pointer; }
+    .slope-label { font-size: 11px; font-weight: 600; cursor: pointer; user-select: none; transition: opacity 0.2s, font-weight 0.2s; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <span class="badge">UOC · M2.859 Visualización de Datos · PEC 2</span>
+    <h1>Técnica 2: Slope Chart (Gráfico de Pendientes)</h1>
+    <p class="subtitle"><strong>Variable representada:</strong> Gasto interior bruto en I+D como porcentaje del PIB (GERD % PIB) entre 2013 y 2023.<br>
+    <strong>Fuentes oficiales:</strong> Eurostat (dataset <code>rd_e_gerdtot</code>) y OCDE (Main Science and Technology Indicators - MSTI).</p>
+  </header>
+
+  <div class="grid">
+    <div id="chart"></div>
+
+    <div class="info-panel">
+      <h3>Ficha Técnica e Insights Analíticos</h3>
+      <div class="stat-box">
+        <div class="stat-title">Objetivo Estratégico UE (Horizonte 2030)</div>
+        <div class="stat-val">3,00% del PIB</div>
+      </div>
+      <div class="stat-box" style="border-left-color: #2563eb;">
+        <div class="stat-title">Agregado Unión Europea (UE-27)</div>
+        <div class="stat-val">2,02% &rarr; 2,24% (+0,22 p.p.)</div>
+      </div>
+      <div class="stat-box" style="border-left-color: #dc2626;">
+        <div class="stat-title">España (Posición Rezagada)</div>
+        <div class="stat-val">1,27% &rarr; 1,44% (+0,17 p.p.)</div>
+      </div>
+      <p><strong>Insight clave:</strong> El gráfico de pendientes hace evidente al instante la <em>divergencia de pendientes</em>. Países líderes como Corea del Sur (+1,19 p.p.) y EE.UU. (+0,75 p.p.) intensifican su ventaja, superando el 3,45%. Mientras, España e Italia mantienen trayectorias de bajo crecimiento (+0,17 p.p. y +0,12 p.p.), manteniéndose significativamente por debajo de la media de la UE-27 (2,24%).</p>
+      <p style="margin-top: 8px;"><strong>Ventaja cognitiva de la técnica:</strong> Permite percibir de forma simultánea el valor inicial (2013), el valor final (2023) y la pendiente absoluta de variación en un único intervalo decenal, facilitando la detección de cruces de ranking (como Grecia superando a Italia y España).</p>
+      <p style="font-size: 11px; color: #64748b; margin-top: 16px;">Fuente de datos: Eurostat / OCDE MSTI (2024). Autor: Pablo Alejandro Calviño Padín.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Serie histórica homogénea 2013 vs 2023 (Eurostat rd_e_gerdtot / OCDE)
+  const data = [
+    { id: "KR", country: "Corea del Sur", val2013: 4.02, val2023: 5.21, highlight: true, color: "#2563eb" },
+    { id: "US", country: "Estados Unidos", val2013: 2.71, val2023: 3.46, highlight: false, color: "#0284c7" },
+    { id: "SE", country: "Suecia", val2013: 3.22, val2023: 3.42, highlight: false, color: "#0d9488" },
+    { id: "DE", country: "Alemania", val2013: 2.82, val2023: 3.13, highlight: false, color: "#16a34a" },
+    { id: "DK", country: "Dinamarca", val2013: 2.97, val2023: 3.11, highlight: false, color: "#65a30d" },
+    { id: "EU27", country: "Media UE-27", val2013: 2.02, val2023: 2.24, highlight: true, color: "#d97706" },
+    { id: "FR", country: "Francia", val2013: 2.24, val2023: 2.18, highlight: false, color: "#9333ea" },
+    { id: "PT", country: "Portugal", val2013: 1.33, val2023: 1.66, highlight: false, color: "#059669" },
+    { id: "GR", country: "Grecia", val2013: 0.81, val2023: 1.49, highlight: false, color: "#0891b2" },
+    { id: "PL", country: "Polonia", val2013: 0.87, val2023: 1.46, highlight: false, color: "#475569" },
+    { id: "ES", country: "España", val2013: 1.27, val2023: 1.44, highlight: true, color: "#dc2626" },
+    { id: "IT", country: "Italia", val2013: 1.31, val2023: 1.43, highlight: false, color: "#64748b" }
+  ];
+
+  const margin = { top: 60, right: 150, bottom: 40, left: 150 };
+  const width = 760 - margin.left - margin.right;
+  const height = 560 - margin.top - margin.bottom;
+
+  const svg = d3.select("#chart")
+    .append("svg")
+    .attr("viewBox", `0 0 760 560`)
+    .attr("width", "100%")
+    .attr("height", 560)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const yScale = d3.scaleLinear()
+    .domain([0.5, 5.5])
+    .range([height, 0]);
+
+  // Ejes temporales
+  svg.append("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", height).attr("stroke", "#cbd5e1").attr("stroke-width", 2);
+  svg.append("line").attr("x1", width).attr("x2", width).attr("y1", 0).attr("y2", height).attr("stroke", "#cbd5e1").attr("stroke-width", 2);
+
+  svg.append("text").attr("x", 0).attr("y", -18).attr("text-anchor", "middle").attr("fill", "#0f172a").attr("font-size", "14px").attr("font-weight", "700").text("Año 2013");
+  svg.append("text").attr("x", width).attr("y", -18).attr("text-anchor", "middle").attr("fill", "#0f172a").attr("font-size", "14px").attr("font-weight", "700").text("Año 2023");
+
+  // Línea de referencia objetivo UE 3.0%
+  const yTarget = yScale(3.0);
+  svg.append("line").attr("x1", 0).attr("x2", width).attr("y1", yTarget).attr("y2", yTarget).attr("class", "line-target");
+  svg.append("text").attr("x", width / 2).attr("y", yTarget - 6).attr("text-anchor", "middle").attr("fill", "#64748b").attr("font-size", "11px").attr("font-weight", "600").text("--- Objetivo Estratégico UE: 3,00% del PIB ---");
+
+  // Renderizar líneas
+  const lines = svg.selectAll(".slope-line")
+    .data(data)
+    .enter()
+    .append("line")
+    .attr("class", d => `slope-line item-${d.id}`)
+    .attr("x1", 0)
+    .attr("x2", width)
+    .attr("y1", d => yScale(d.val2013))
+    .attr("y2", d => yScale(d.val2023))
+    .attr("stroke", d => d.color)
+    .attr("stroke-width", d => d.highlight ? 3.5 : 2)
+    .attr("opacity", d => d.highlight ? 1.0 : 0.65);
+
+  // Puntos en 2013
+  svg.selectAll(".dot-2013")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("class", d => `slope-dot item-${d.id}`)
+    .attr("cx", 0)
+    .attr("cy", d => yScale(d.val2013))
+    .attr("r", d => d.highlight ? 5 : 3.5)
+    .attr("fill", d => d.color);
+
+  // Puntos en 2023
+  svg.selectAll(".dot-2023")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("class", d => `slope-dot item-${d.id}`)
+    .attr("cx", width)
+    .attr("cy", d => yScale(d.val2023))
+    .attr("r", d => d.highlight ? 5 : 3.5)
+    .attr("fill", d => d.color);
+
+  // Etiquetas a la izquierda (2013)
+  const labelsLeft = svg.selectAll(".label-left")
+    .data(data)
+    .enter()
+    .append("text")
+    .attr("class", d => `slope-label label-left item-${d.id}`)
+    .attr("x", -12)
+    .attr("y", d => yScale(d.val2013) + 4)
+    .attr("text-anchor", "end")
+    .attr("fill", d => d.highlight ? d.color : "#475569")
+    .text(d => `${d.country} (${d.val2013.toFixed(2)}%)`);
+
+  // Etiquetas a la derecha (2023)
+  const labelsRight = svg.selectAll(".label-right")
+    .data(data)
+    .enter()
+    .append("text")
+    .attr("class", d => `slope-label label-right item-${d.id}`)
+    .attr("x", width + 12)
+    .attr("y", d => yScale(d.val2023) + 4)
+    .attr("text-anchor", "start")
+    .attr("fill", d => d.highlight ? d.color : "#475569")
+    .text(d => `${d.val2023.toFixed(2)}% ${d.country}`);
+
+  // Hover unificado por ID de entidad
+  function highlightItem(itemId) {
+    svg.selectAll(".slope-line").attr("opacity", 0.15).attr("stroke-width", 1.5);
+    svg.selectAll(".slope-dot").attr("opacity", 0.15);
+    svg.selectAll(".slope-label").attr("opacity", 0.25).attr("font-weight", 400);
+
+    svg.selectAll(`.item-${itemId}`).attr("opacity", 1.0).attr("stroke-width", 4).attr("font-weight", 800);
+  }
+
+  function resetHighlight() {
+    svg.selectAll(".slope-line")
+      .attr("opacity", d => d.highlight ? 1.0 : 0.65)
+      .attr("stroke-width", d => d.highlight ? 3.5 : 2);
+    svg.selectAll(".slope-dot").attr("opacity", 1.0);
+    svg.selectAll(".slope-label")
+      .attr("opacity", 1.0)
+      .attr("font-weight", d => d.highlight ? 800 : 600);
+  }
+
+  svg.selectAll(".slope-line, .slope-label, .slope-dot")
+    .on("mouseenter", function(event, d) { highlightItem(d.id); })
+    .on("mouseleave", resetHighlight);
+</script>
+
+</body>
+</html>
